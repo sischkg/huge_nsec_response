@@ -108,7 +108,7 @@ NSECのメモリ使用量(リソースレコードあたり3MB)に従ってエ�
 
 ### 対策
 
-以下のPull Requestがマージされ、PowerDNS 4.2.0にて修正されています。
+以下のPull Requestがマージされ、PowerDNS Recursor 4.2.0にて修正されています。
 
 https://github.com/PowerDNS/pdns/pull/7345
 

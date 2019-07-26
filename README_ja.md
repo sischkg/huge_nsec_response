@@ -89,45 +89,13 @@ size of Type Bit Map = bit map count x ( Window Block + Bitmap Length + Bitmap )
                      = 8704 bytes
 
 On memory
-size of Type Bit Map = ( RR Type + color + parent pointer + left pointer + right pointer ) * 65536 + Overhead bytes
+size of Type Bit Map = ( node size of red-black tree ) * 65536 + Overhead bytes
                      = 40 x 65536 + Overhead bytes
                      = 2,621,440 + Overhead bytes
                      ~ 3MB
 ```
 
-set_uint16_t.cpp
-
-```
-#include <vector>
-#include <set>
-#include <iostream>
-#include <unistd.h>
-
-// $ g++ -std=c++11 set_uint16_t.cpp
-// $ ps -C a.out -o rss,cmd
-//   RSS CMD
-//   311268 ./a.out
-
-int main()
-{
-        typedef std::_Rb_tree_node<uint16_t> node_type;
-        std::cout << "size of node: " << sizeof(node_type) << std::endl;
-
-        std::vector<std::set<uint16_t>> bitmaps;
-        for ( unsigned int j = 0 ; j < 100 ; j++ ) {
-                std::set<uint16_t> bitmap;
-                for ( uint16_t i = 0 ; i < 0xffff ; i++ ) {
-                        bitmap.insert( i );
-                }
-                bitmaps.push_back( bitmap );
-        }
-
-        sleep( 60 );
-        return 0;
-}
-
-```
-
+sample code to estimate memory usage: set-uint16_t-x100.cpp
 
 ### PowerDNS Recursorでのキャッシュの制限
 
@@ -148,7 +116,17 @@ https://github.com/PowerDNS/pdns/pull/7345
 
 ## Type Bit Mapsのテキスト表現について
 
-PowerDNS RecursorではなくType Bit Mapsのそのもの事象です。
+PowerDNS Recursorだけではなく他のリゾルバにも関係します。
 
 上記の通りType Bit MapsのWire Formatはサイズが小さくなるように定義されています。
+Type Bit Mapsのすべてのbitを1にしたNSECレコードをテキスト形式に変換すると
+620KB以上のサイズになります[応答例]()。このようなNSECレコードを多くキャッシュした
+フルリゾルバでキャッシュをダンプ(`rndc dumpdb`)すると、メモリ使用量と比較し
+非常に大きなファイルが作成されます。
+
+## 例: 1000レコードをキャッシュした場合
+
+* フルリゾルバ: BIND
+* メモリ使用量: 30MB
+* ダンプファイルのサイズ; 644MB
 

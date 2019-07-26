@@ -5,13 +5,14 @@
 * PowerDNS Recursor 4.2.0未満には、NSECもしくはNSEC3のType Bit Mapの実装に問題があり、
   特殊なリソースレコードをキャッシュすると想定以上のメモリ（リソースレコードあたり3MB)を消費します。
 * PowerDNS Recursorには、キャッシュのエントリ数を制限する機能はありますが、
-  メモリ使用量でキャッシュを制限する機能はありません
+  メモリ使用量でキャッシュを制限する機能はありません。
 * PowerDNS Recursorに特殊なリソースレコードを多くキャッシュさせることで、
-  管理者の想定以上にメモリを消費し、サービスのパフォーマンスの低下や停止が発生します。
+  管理者の想定以上にメモリを消費し、サービスのパフォーマンスの低下や停止を
+  発生させることができます。
 
 ## 影響
 
-攻撃者は、特殊なNSEC/NSECレコードを応答する攻撃用のドメイン名と権威サーバを用意し、
+攻撃者は、特殊なNSEC/NSECレコードを応答する攻撃用のドメイン名とその権威サーバを用意し、
 攻撃対象のPowerDNS Recursorへ攻撃用のドメイン名の問い合わせを送信し続けることで、
 攻撃対象のサーバのメモリ使用量を増加させることができます。
 
@@ -23,6 +24,7 @@
 
 リソースレコードあたり3MBのメモリを消費する前提で、
 キャッシュのエントリ数を制限します([max-cache-entries](https://doc.powerdns.com/recursor/settings.html#setting-max-cache-entries) )。
+ただし、キャッシュのエントリ数が少なるなるためヒット率が低下します。
 
 ## 対策
 
@@ -32,15 +34,12 @@ PowerDNS Recursor 4.2.0へバージョンアップします。
 
 ### NSEC
 
-DNSSECおいてドメイン名もしくはRRSetが存在しないことを証明するために、NSEC/NSECリソースレコードが導入されました。
-NSECレコードでは、
-
-* リソースレコードのOwerとNext Domainフィールドを用いて、その間にドメイン名が存在しないこと示します。
-* Type Bit Maps Fieldにて、Onwerに存在するリソースレコードタイプを示します。
+DNSSECおいてドメイン名もしくはRRSetが存在しないことを証明するために、NSECリソースレコードが導入されました。
+NSECレコードのType Bit Mapsフィールドでは、Ownerに存在するリソースレコードタイプを示します。
 
 ### Wire Format of Type Bit Maps
 
-Type Bit MapｓのWire Formatは、リソースレコードタイプ(16bit)の配列ではなく、サイズがより小さくなるように定義されています
+Type Bit MapsのWire Formatは、単純なリソースレコードタイプ(16bit)の配列ではなく、サイズがより小さくなるように定義されています
 ([4.1.2.  The Type Bit Maps Field](https://tools.ietf.org/html/rfc4034#section-4.1.2) )。
 
 ### PowerDNS RecursorのType Bit Mapsの実装
@@ -65,7 +64,7 @@ private:
 ```
 
 C++(CentOS 7.6のGCC 4.8.5)のSTLはstd::setはRed-Black treeを用いて実装しているため、
-std::setの一つのエントリには、Colorと親ノード、子ノードx2へのポインタが付属します。
+std::setの一つのエントリには、Colorとparent node、left, right nodeへのポインタが付属します。
 
 ```c++
   struct _Rb_tree_node_base
@@ -77,9 +76,10 @@ std::setの一つのエントリには、Colorと親ノード、子ノードx2�
     _Base_ptr           _M_parent;
     _Base_ptr           _M_left;
     _Base_ptr           _M_right;
+    
 ```
 
-Type Bit Mapsの全てのbitを1とするとWireFormatでは8704bytesになりますが、PowerDNS Recursor上ではおよそ3MB程度になります。
+Type Bit Mapsの全てのbitを1とするとWire Formatでは8704bytesになりますが、PowerDNS Recursor上ではおよそ3MB程度になります。
 そのため通常の署名済みゾーンのNSECレコードでは問題になりませんが、故意に多くのbitを1にした場合にPowerDNS Recursor のメモリ
 使用量は非常に大きくなります。
 
@@ -89,10 +89,10 @@ size of Type Bit Map = bit map count x ( Window Block + Bitmap Length + Bitmap )
                      = 256 x ( 1 + 1 + 32 ) bytes
                      = 8704 bytes
 
-On memory
+PowerDNS Recursor
 size of Type Bit Map = ( node size of red-black tree ) * 65536 + Overhead bytes
-                     = 40 x 65536 + Overhead bytes
-                     = 2,621,440 + Overhead bytes
+                     = 40 x 65535 + Overhead bytes
+                     = 2,621,400 + Overhead bytes
                      ~ 3MB
 ```
 

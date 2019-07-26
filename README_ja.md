@@ -21,7 +21,8 @@
 
 ## 回避策
 
-リソースレコードあたり3MBのメモリを消費する前提で、キャッシュのエントリ数を制限します([max-cache-entries](https://doc.powerdns.com/recursor/settings.html#setting-max-cache-entries) )。
+リソースレコードあたり3MBのメモリを消費する前提で、
+キャッシュのエントリ数を制限します([max-cache-entries](https://doc.powerdns.com/recursor/settings.html#setting-max-cache-entries) )。
 
 ## 対策
 
@@ -39,14 +40,14 @@ NSECレコードでは、
 
 ### Wire Format of Type Bit Maps
 
-Type Bit MapｓのWire Formatは、リソースレコードタイプ(16bit)の配列ではなく、サイズがより小さくなるように定義されています。
-
-[4.1.2.  The Type Bit Maps Field](https://tools.ietf.org/html/rfc4034#section-4.1.2)
+Type Bit MapｓのWire Formatは、リソースレコードタイプ(16bit)の配列ではなく、サイズがより小さくなるように定義されています
+([4.1.2.  The Type Bit Maps Field](https://tools.ietf.org/html/rfc4034#section-4.1.2) )。
 
 ### PowerDNS RecursorのType Bit Mapsの実装
 
-4.2.0未満のPowerDNS Recursorでは、Type Bit Mapsの値をC++のSTLのstd::set<uint16_t>で保持しています([class NSECRecordContent](https://github.com/PowerDNS/pdns/blob/rec-4.1.14/pdns/dnsrecords.hh#L506) )。Type Bit MapsのTypeの1bitが、std::set<uinit16_t>
-1エントリに対応しています。
+4.2.0未満のPowerDNS Recursorでは、Type Bit Mapsの値をC++のSTLのstd::set<uint16_t>で保持しています
+([class NSECRecordContent](https://github.com/PowerDNS/pdns/blob/rec-4.1.14/pdns/dnsrecords.hh#L506) )。
+Type Bit MapsのTypeの1bitが、std::set<uinit16_t>の1エントリに対応しています。
 
 
 ```c++
@@ -63,7 +64,7 @@ private:
 };
 ```
 
-C++(CentOS 7.6のGCC 4.8.5)のSTLはstd::setはRed-black treeを用いて実装しているため、
+C++(CentOS 7.6のGCC 4.8.5)のSTLはstd::setはRed-Black treeを用いて実装しているため、
 std::setの一つのエントリには、Colorと親ノード、子ノードx2へのポインタが付属します。
 
 ```c++
@@ -95,7 +96,7 @@ size of Type Bit Map = ( node size of red-black tree ) * 65536 + Overhead bytes
                      ~ 3MB
 ```
 
-sample code to estimate memory usage: set-uint16_t-x100.cpp
+sample code to estimate memory usage: [set-uint16_t-x100.cpp](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/set-uint16_t-x100.cpp)
 
 ### PowerDNS Recursorでのキャッシュの制限
 
@@ -120,9 +121,9 @@ PowerDNS Recursorだけではなく他のリゾルバにも関係します。
 
 上記の通りType Bit MapsのWire Formatはサイズが小さくなるように定義されています。
 Type Bit Mapsのすべてのbitを1にしたNSECレコードをテキスト形式に変換すると
-620KB以上のサイズになります[応答例]()。このようなNSECレコードを多くキャッシュした
-フルリゾルバでキャッシュをダンプ(`rndc dumpdb`)すると、メモリ使用量と比較し
-非常に大きなファイルが作成されます。
+620KB以上のサイズになります[応答例](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)。
+このようなNSECレコードを多くキャッシュしたフルリゾルバでキャッシュをダンプ(`rndc dumpdb`)すると、
+フルリゾルバのメモリ使用量と比較し非常に大きなファイルが作成されます。
 
 ## 例: 1000レコードをキャッシュした場合
 

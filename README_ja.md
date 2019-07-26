@@ -96,7 +96,7 @@ size of Type Bit Map = ( node size of red-black tree ) * 65536 + Overhead bytes
                      ~ 3MB
 ```
 
-sample code to estimate memory usage: [set-uint16_t-x100.cpp](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/set-uint16_t-x100.cpp)
+sample code to estimate memory usage: [set-uint16_t-x100.cpp](https://github.com/sischkg/huge_nsec_response/blob/master/set-uint16_t-x100.cpp)
 
 ### PowerDNS Recursorでのキャッシュの制限
 
@@ -121,9 +121,11 @@ PowerDNS Recursorだけではなく他のリゾルバにも関係します。
 
 上記の通りType Bit MapsのWire Formatはサイズが小さくなるように定義されています。
 Type Bit Mapsのすべてのbitを1にしたNSECレコードをテキスト形式に変換すると
-620KB以上のサイズになります[応答例](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)。
+620KB以上のサイズになります。
 このようなNSECレコードを多くキャッシュしたフルリゾルバでキャッシュをダンプ(`rndc dumpdb`)すると、
 フルリゾルバのメモリ使用量と比較し非常に大きなファイルが作成されます。
+
+* [応答例](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)
 
 ## 例: 1000レコードをキャッシュした場合
 

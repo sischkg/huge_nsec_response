@@ -133,3 +133,9 @@ Type Bit Mapsのすべてのbitを1にしたNSECレコードをテキスト形�
 * メモリ使用量: 30MB
 * ダンプファイルのサイズ; 644MB
 
+## 対策
+
+ISCに"管理者の想定よりも大きいダンプファイルを生成する可能性がある"とARMへ追加するように依頼しました。
+
+https://gitlab.isc.org/isc-projects/bind9/issues/795
+

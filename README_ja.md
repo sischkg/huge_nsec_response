@@ -2,17 +2,17 @@
 
 ## 概要
 
-* PowerDNS Recursor 4.2.0未満には、NSECもしくはNSEC3のType Bit Mapの実装に問題があり、
+* PowerDNS Recursor 4.2.0未満には、NSEC/NSEC3のType Bit Mapの実装に問題があり、
   特殊なリソースレコードをキャッシュすると想定以上のメモリ（リソースレコードあたり3MB)を消費します。
-* PowerDNS Recursorには、キャッシュのエントリ数を制限する機能はありますが、
+* PowerDNS Recursorにはキャッシュのエントリ数を制限する機能はありますが、
   メモリ使用量でキャッシュを制限する機能はありません。
 * PowerDNS Recursorに特殊なリソースレコードを多くキャッシュさせることで、
-  管理者の想定以上にメモリを消費し、サービスのパフォーマンスの低下や停止を
+  管理者の想定以上にメモリを消費しサービスのパフォーマンスの低下や停止を
   発生させることができます。
 
 ## 影響
 
-攻撃者は、特殊なNSEC/NSECレコードを応答する攻撃用のドメイン名とその権威サーバを用意し、
+攻撃者は特殊なNSEC/NSECレコードを応答する攻撃用のドメイン名とその権威サーバを用意し、
 攻撃対象のPowerDNS Recursorへ攻撃用のドメイン名の問い合わせを送信し続けることで、
 攻撃対象のサーバのメモリ使用量を増加させることができます。
 
@@ -37,7 +37,7 @@ PowerDNS Recursor 4.2.0へバージョンアップします。
 DNSSECおいてドメイン名もしくはRRSetが存在しないことを証明するために、NSECリソースレコードが導入されました。
 NSECレコードのType Bit Mapsフィールドでは、Ownerに存在するリソースレコードタイプを示します。
 
-### Wire Format of Type Bit Maps
+### Type Bit MapsのWire Format
 
 Type Bit MapsのWire Formatは、単純なリソースレコードタイプ(16bit)の配列ではなく、サイズがより小さくなるように定義されています
 ([4.1.2.  The Type Bit Maps Field](https://tools.ietf.org/html/rfc4034#section-4.1.2) )。
@@ -62,7 +62,7 @@ private:
 };
 ```
 
-C++(CentOS 7.6のGCC 4.8.5)のSTLはstd::setはRed-Black treeを用いて実装しているため、
+C++(CentOS 7.6のGCC 4.8.5)においてstd::setはRed-Black treeを用いて実装しているため、
 std::setの一つのエントリには、Colorとparent node、left, right nodeへのポインタが付属します。
 
 ```c++
@@ -77,9 +77,9 @@ std::setの一つのエントリには、Colorとparent node、left, right node�
     _Base_ptr           _M_right;
 ```
 
-Type Bit Mapsの全てのbitを1とするとWire Formatでは8704bytesになりますが、PowerDNS Recursor上ではおよそ3MB程度になります。
-そのため通常の署名済みゾーンのNSECレコードでは問題になりませんが、故意に多くのbitを1にした場合にPowerDNS Recursor のメモリ
-使用量は非常に大きくなります。
+Type Bit Mapsの全てのbitを1にするとWire Formatでは8704bytesになりますが、PowerDNS Recursor上ではおよそ3MB程度になります。
+そのため通常の署名済みゾーンのNSECレコードでは問題になりませんが、故意に多くのbitを1にしたNSECレコードをキャッシュした場合、
+PowerDNS Recursor のメモリ使用量は非常に大きくなります。
 
 ```text
 Wire Format
@@ -101,7 +101,7 @@ sample code to estimate memory usage: [set-uint16_t-x100.cpp](https://github.com
 BINDやUnboundでは、リソースレコードのキャッシュの量をメモリ使用量で制限することが出来ますが、
 PowerDNS Recursorではキャッシュ内のリソースレコードの数で制限します。PowerDNS Recursorで、
 NSECのメモリ使用量(リソースレコードあたり3MB)に従ってエントリ数を制限すると、キャッシュを
-多く持つことが出来なくなります。
+多く持つことが出来なくなり、キャッシュヒット率が低下します。
 
 ### 対策
 
@@ -109,19 +109,19 @@ NSECのメモリ使用量(リソースレコードあたり3MB)に従ってエ�
 
 https://github.com/PowerDNS/pdns/pull/7345
 
-## おまけ
+# おまけ
 
-### Type Bit Mapsのテキスト表現について
+## Type Bit Mapsのテキスト表現について
 
-PowerDNS Recursorだけではなく他のリゾルバにも関係します。
+以後の内容はPowerDNS Recursorだけではなく他のリゾルバにも関係します。
 
 上記の通りType Bit MapsのWire Formatはサイズが小さくなるように定義されています。
 Type Bit Mapsのすべてのbitを1にしたNSECレコードをテキスト形式に変換すると
 620KB以上のサイズになります。
 このようなNSECレコードを多くキャッシュしたフルリゾルバでキャッシュをダンプ(`rndc dumpdb`)すると、
-フルリゾルバのメモリ使用量と比較し非常に大きなファイルが作成されます。
+フルリゾルバのメモリ使用量よりも非常に大きなファイルが作成されます。
 
-* [応答例](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)
+* [Type Bit Mapsのすべてのbitを1にしたNSECレコード](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)
 
 ### 例: 1000レコードをキャッシュした場合
 

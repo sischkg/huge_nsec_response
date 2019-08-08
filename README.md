@@ -72,9 +72,10 @@ In STL(CentOS 7 GCC 4.8.5), std::set is implemented by Red-Black-Tree, and one n
     _Base_ptr           _M_right;
 ```
 
-If all bits in Type Bit Maps Field set to 1, the size on wire is 8704bytes. However the memory usage on PowerDNS Recursor is about 3MB.
-Therefore, the memory usage of PowerDNS Recursor  
-increases too large, if it caches the many crafted NSEC/NSEC records set many bits to 1 in the Type Bit Maps field.
+If all bits in Type Bit Maps Field set to 1, the size on wire is 8704bytes.
+However the memory usage on PowerDNS Recursor is about 3MB.
+Therefore, the memory usage of PowerDNS Recursor increases too large,
+if it caches the many crafted NSEC/NSEC records set many bits to 1 in the Type Bit Maps field.
 
 ```text
 Wire Format

@@ -32,7 +32,7 @@ PowerDNS Recursor 4.2.0へバージョンアップします。
 
 ## 詳細
 
-### NSEC
+### NSEC/NSEC3
 
 DNSSECおいてドメイン名もしくはRRSetが存在しないことを証明するために、NSECリソースレコードが導入されました。
 NSECレコードのType Bit Mapsフィールドでは、Ownerに存在するリソースレコードタイプを示します。
@@ -47,7 +47,6 @@ Type Bit MapsのWire Formatは、単純なリソースレコードタイプ(16bi
 4.2.0未満のPowerDNS Recursorでは、Type Bit Mapsの値をC++のSTLのstd::set<uint16_t>で保持しています
 ([class NSECRecordContent](https://github.com/PowerDNS/pdns/blob/rec-4.1.14/pdns/dnsrecords.hh#L506) )。
 Type Bit MapsのTypeの1bitが、std::set<uinit16_t>の1エントリに対応しています。
-
 
 ```c++
 class NSECRecordContent : public DNSRecordContent
@@ -76,7 +75,6 @@ std::setの一つのエントリには、Colorとparent node、left, right node�
     _Base_ptr           _M_parent;
     _Base_ptr           _M_left;
     _Base_ptr           _M_right;
-    
 ```
 
 Type Bit Mapsの全てのbitを1とするとWire Formatでは8704bytesになりますが、PowerDNS Recursor上ではおよそ3MB程度になります。
@@ -105,17 +103,15 @@ PowerDNS Recursorではキャッシュ内のリソースレコードの数で制
 NSECのメモリ使用量(リソースレコードあたり3MB)に従ってエントリ数を制限すると、キャッシュを
 多く持つことが出来なくなります。
 
-
 ### 対策
 
 以下のPull Requestがマージされ、PowerDNS Recursor 4.2.0にて修正されています。
 
 https://github.com/PowerDNS/pdns/pull/7345
 
+## おまけ
 
-# おまけ
-
-## Type Bit Mapsのテキスト表現について
+### Type Bit Mapsのテキスト表現について
 
 PowerDNS Recursorだけではなく他のリゾルバにも関係します。
 
@@ -127,15 +123,14 @@ Type Bit Mapsのすべてのbitを1にしたNSECレコードをテキスト形�
 
 * [応答例](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)
 
-## 例: 1000レコードをキャッシュした場合
+### 例: 1000レコードをキャッシュした場合
 
 * フルリゾルバ: BIND
 * メモリ使用量: 30MB
 * ダンプファイルのサイズ; 644MB
 
-## 対策
+### 対策
 
 ISCに"管理者の想定よりも大きいダンプファイルを生成する可能性がある"とARMへ追加するように依頼しました。
 
 https://gitlab.isc.org/isc-projects/bind9/issues/795
-

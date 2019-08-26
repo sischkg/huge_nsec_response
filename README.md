@@ -72,8 +72,8 @@ In STL(CentOS 7 GCC 4.8.5), std::set is implemented by Red-Black-Tree, and one n
     _Base_ptr           _M_right;
 ```
 
-If all bits in Type Bit Maps Field set to 1, the size on wire is 8704bytes.
-However the memory usage on PowerDNS Recursor is about 3MB.
+If all bits in Type Bit Maps Field set to 1, the size on the wire is 8704bytes.
+However, the memory usage on PowerDNS Recursor is about 3MB.
 Therefore, the memory usage of PowerDNS Recursor increases too large,
 if it caches the many crafted NSEC/NSEC records set many bits to 1 in the Type Bit Maps field.
 
@@ -95,4 +95,39 @@ sample code to estimate memory usage: [set-uint16_t-x100.cpp](https://github.com
 ### PowerDNS Recursor Cache Limit
 
 BIND and Unbound can limit the amount of memory for resource records,
-However PowerDNS Recursor can limit the number of cached resource record entries, but cannot limit the amount of memory usage for them.
+however, PowerDNS Recursor can limit the number of cached resource record entries(max-cache-entries), but cannot limit the amount of memory usage for them.
+`max-cache-entries` should be too small, then the cache hit rate also becomes too small.
+
+### Changes in PowerDNS 4.2.0
+
+The following pull request is merged and released at 4.2.0.
+
+https://github.com/PowerDNS/pdns/pull/7345
+
+PowerDNS Recursor switches from a std::set<uint16_t> to a std::bitset once the number of types reached 200.
+
+## Appendix
+
+### The text representation of Type Bit Maps.
+
+This issue affects any full-resolvers too other than Powerdns Recorsor.
+
+As explained above, Type Bit Maps is defined to be very small on the wire. If Type Bit Maps is set all bits to 1 in NSEC record,
+the size of it in text-representation is larger than 620KB. The full-resolver which includes those records in the cache
+dumps(rndc dumpdb) the larger files then the memory usage.
+
+* [Type Bit Maps set all bits to 1](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)
+
+#### Example
+
+* full-resolver: BIND
+* memory usage: 30MB
+* dumped file: 644MB
+
+#### Solution
+
+The administrator should prepare the large capacity of the filesystem, which is the destination of dumpdb.
+
+This issue has been reported to ISC.
+
+https://gitlab.isc.org/isc-projects/bind9/issues/795

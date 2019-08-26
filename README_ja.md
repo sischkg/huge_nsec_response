@@ -103,15 +103,17 @@ PowerDNS Recursorではキャッシュ内のリソースレコードの数で制
 NSECのメモリ使用量(リソースレコードあたり3MB)に従ってエントリ数を制限すると、キャッシュを
 多く持つことが出来なくなり、キャッシュヒット率が低下します。
 
-### 対策
+### PowerDNS 4.2.0での変更点
 
 以下のPull Requestがマージされ、PowerDNS Recursor 4.2.0にて修正されています。
 
 https://github.com/PowerDNS/pdns/pull/7345
 
-# おまけ
+PowerDNS 4.2.0ではBit Map Types内のTypeが200に達した場合、それを保存するコンテナを `std::set<uint16_t>` から `std::bitset` へ変更します。
 
-## Type Bit Mapsのテキスト表現について
+## おまけ
+
+### Type Bit Mapsのテキスト表現について
 
 以後の内容はPowerDNS Recursorだけではなく他のリゾルバにも関係します。
 
@@ -123,14 +125,16 @@ Type Bit Mapsのすべてのbitを1にしたNSECレコードをテキスト形�
 
 * [Type Bit Mapsのすべてのbitを1にしたNSECレコード](https://raw.githubusercontent.com/sischkg/huge_nsec_response/master/nsec_response.txt)
 
-### 例: 1000レコードをキャッシュした場合
+#### 例: 1000レコードをキャッシュした場合
 
 * フルリゾルバ: BIND
 * メモリ使用量: 30MB
 * ダンプファイルのサイズ; 644MB
 
-### 対策
+#### 対策
 
-ISCに"管理者の想定よりも大きいダンプファイルを生成する可能性がある"とARMへ追加するように依頼しました。
+キャッシュをダンプする対象となるファイルシステムの容量を、十分に大きくしておきます。
+また、ISCに"管理者の想定よりも大きいダンプファイルを生成する可能性がある"とARMへ追加するように依頼しました。
 
 https://gitlab.isc.org/isc-projects/bind9/issues/795
+

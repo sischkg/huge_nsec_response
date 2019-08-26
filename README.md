@@ -1,4 +1,4 @@
-# Memory usage issue caused by the implementation of NSEC/NSEC3 Type Bit Maps in PowerDNS Recurosr
+# Memory usage issue caused by the implementation of NSEC/NSEC3 Type Bit Maps in PowerDNS Recursor
 
 ## Overview
 
